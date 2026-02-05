@@ -1,0 +1,80 @@
+//
+//  Notes.swift
+//  SwiftDataDetailedWorking
+//
+//  Created by Koray Urun on 5.02.2026.
+//
+
+
+ 
+ @Model : Veri şemamızı tanımlayan Swift makrosudur.
+ ModelContainer : Verilerin nerede saklandığını (bellek veya disk) yöneten "backend" kısmıdır.
+ ModelContext : Veri ekleme,silme ve güncelleme gibi işlemleri yaptığımız "çalışma alanı"dır.
+ 
+ @Query makrosu ile verileri otomatik olarak çekebiliyoruz
+ 
+ @Environment(\.modelContext) private var modelContext -> işlem yapmak için context'e erişim
+ 
+ Predicates : Verileri filtrelemek için kullanılır. Örneğin sadece tamamlanmamışları çekmek için :
+ @Query(filter : #Predicate<TaskItem> {!$0.isCompleted})
+ 
+ SwiftData, CloudKit ile entegre çalışacak şekilde tasarlanmıştır.
+ 
+ 
+ 
+ 
+ @Attribute : Bir sınıftaki değişkenler varsayılan olarak veritabanı sütunlarına dönüşür.
+ Ancak bu sütunlara özel "kurallar" koymak istersek @Attribute kullanırız.
+ 
+ @Model
+ class User {
+     @Attribute(.unique) var email: String // Aynı e-posta ile ikinci kayıt eklenemez
+     @Attribute(.externalStorage) var profilePicture: Data? // Büyük verileri DB dışında saklar (performans için)
+     
+     var name: String // Standart kullanım, makroya gerek yok
+     
+     init(email: String, name: String) {
+         self.email = email
+         self.name = name
+     }
+ }
+ 
+ @Relationship : İki model arasındaki ilişki (1-1, 1-N, N-N). En kritik kullanım deleteRule parametresidir
+ 
+ @Model
+ class Author {
+     var name: String
+     
+     // cascade: Yazar silinirse tüm kitapları da silinir.
+     // inverse: Kitap modelindeki 'author' alanı ile burayı bağlar.
+     @Relationship(deleteRule: .cascade, inverse: \Book.author)
+     var books: [Book] = []
+ }
+
+ @Model
+ class Book {
+     var title: String
+     var author: Author?
+     
+     init(title: String) { self.title = title }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+     #Predicate: Veritabanına "İsmi 'B' olan yazarı bul" diyen bir SQL filtresidir.
+
+     FetchDescriptor: Bu filtreyi paketleyip "bunu git veritabanından getir" emrini hazırlayan yapıdır.
+
+     modelContext.fetch: Bu aramayı gerçekleştirir.
+ 
+     let authorPredicate = #Predicate<Author> { $0.name == authorName }
+     let descriptor = FetchDescriptor<Author>(predicate: authorPredicate)
+     let existingAuthors = (try? modelContext.fetch(descriptor)) ?? []
+
+//
