@@ -7,7 +7,7 @@ A reactive shopping cart app built to explore and practice the Combine framework
 
 ## Screenshot
 
-![App Screen](1.png)
+<img src="1.png" width="300"/> 
 
 ---
 
